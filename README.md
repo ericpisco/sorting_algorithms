@@ -1,0 +1,1 @@
+At the end of this project, I’m expected to be able to explain to anyone, without the help of Google: At least four different sorting algorithms, What is the Big O notation, and how to evaluate the time complexity of an algorithm, How to select the best sorting algorithm for a given input and What is a stable sorting algorithm
