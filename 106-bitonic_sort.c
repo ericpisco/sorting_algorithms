@@ -1,89 +1,75 @@
 #include "sort.h"
-#include <stdio.h>
 
 /**
- * bitonic_compare - helper to bitonic_merge, sorts contents of current
- * subarray
- * @up: if true, sort in ascending order, false, descending
- * @x: subarray in current frame of recursion
- * @size: number of elements in `x`
- */
-void bitonic_compare(bool up, int *x, size_t size)
-{
-	size_t dist, i;
-	int temp;
-
-	dist = size / 2;
-	for (i = 0; i < dist; i++)
-	{
-		if ((x[i] > x[i + dist]) == up)
-		{
-			temp = x[i];
-			x[i] = x[i + dist];
-			x[i + dist] = temp;
-		}
-	}
-}
-
-/**
- * bitonic_merge - second recursive function of bitonic_sort, sorts subarrays
- * via bitonic_compare, and merges the sorted results
- * @up: if true, sort in ascending order, false, descending
- * @x: subarray in previous frame of recursion
- * @size: number of elements in `x`
- * @orig_size: number of elements in source array being sorted
- */
-void bitonic_merge(bool up, int *x, size_t size, size_t orig_size)
-{
-	int *first, *second;
-
-	if (size > 1)
-	{
-		first = x;
-		second = x + (size / 2);
-		bitonic_compare(up, x, size);
-		bitonic_merge(up, first, size / 2, orig_size);
-		bitonic_merge(up, second, size / 2, orig_size);
-	}
-}
-
-/**
- * bitonic_sort_r - first recursive engine of bitonic_sort, divides array
- * into a binary tree of subarrays, and assigns sorting order.
- * @up: if true, sort in ascending order, false, descending
- * @x: subarray in previous frame of recursion
- * @size: number of elements in `x`
- * @orig_size: number of elements in source array being sorted
- */
-void bitonic_sort_r(bool up, int *x, size_t size, size_t orig_size)
-{
-	int *first, *second;
-
-	if (size <= 1)
-		return;
-	first = x;
-	second = x + (size / 2);
-	printf("Merging [%lu/%lu] (%s):\n", size, orig_size,
-	       (up ? "UP" : "DOWN"));
-	print_array(x, size);
-	bitonic_sort_r(true, first, size / 2, orig_size);
-	bitonic_sort_r(false, second, size / 2, orig_size);
-	bitonic_merge(up, first, size, orig_size);
-	printf("Result [%lu/%lu] (%s):\n", size, orig_size,
-	       (up ? "UP" : "DOWN"));
-	print_array(x, size);
-}
-
-/**
- * bitonic_sort - sorts array of integers in ascending order using a bitonic
- * sort alogrithm
- * @array: array of values to be printed
- * @size: number of elements in array
+ * bitonic_sort - sorts an array following the Bitonic sort algorithm
+ * @array: array of ints to sort
+ * @size: size of the array
  */
 void bitonic_sort(int *array, size_t size)
 {
-	if (!array || size == 0)
+	if (!array || size < 2)
 		return;
 
-	bitonic_sort_r(true, array, size, size);
+	bitonic_recursion(array, 0, size - 1, 1, size);
+}
+
+/**
+ * bitonic_recursion - recursive function for bitonic sort
+ * @array: array to sort
+ * @l: index of the left-most element
+ * @r: index of the right-most element
+ * @direction: ascending or descending
+ * @size: size of the array
+ */
+void bitonic_recursion(int *array, int l, int r, int direction, size_t size)
+{
+	int step;
+
+	if (r - l >= 1)
+	{
+		step = (r + l) / 2;
+		printf("Merging [%d/%lu] ", r - l + 1, size);
+		if (direction)
+			printf("(UP):\n");
+		else
+			printf("(DOWN):\n");
+		print_array(array + l, r - l + 1);
+		bitonic_recursion(array, l, step, 1, size);
+		bitonic_recursion(array, step + 1, r, 0, size);
+		bitonic_merge(array, l, r, direction);
+		printf("Result [%d/%lu] ", r - l + 1, size);
+		if (direction)
+			printf("(UP):\n");
+		else
+			printf("(DOWN):\n");
+		print_array(array + l, r - l + 1);
+	}
+}
+
+/**
+ * bitonic_merge - sorts and merges a sequence in ascending or descending order
+ * @array: array to sort
+ * @l: index of the left-most element
+ * @r: index of the right-most element
+ * @direction: ascending or descending
+ */
+void bitonic_merge(int *array, int l, int r, int direction)
+{
+	int tmp, i, step = (l + r) / 2, mid = (r - l + 1) / 2;
+
+	if (r - l >= 1)
+	{
+		for (i = l; i < l + mid; i++)
+		{
+			if (direction == (array[i] > array[i + mid]))
+			{
+				tmp = array[i + mid];
+				array[i + mid] = array[i];
+				array[i] = tmp;
+			}
+		}
+		bitonic_merge(array, l, step, direction);
+		bitonic_merge(array, step + 1, r, direction);
+	}
+
 }
